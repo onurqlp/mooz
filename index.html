@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Video Chat with Jitsi</title>
+    <script src='https://meet.jit.si/external_api.js'></script>
+  </head>
+  <body>
+    <h1>Simple Jitsi Video Chat</h1>
+    <div id="meet"></div>
+
+    <script>
+      const domain = "meet.jit.si";
+      const options = {
+        roomName: "TestRoom123",  // Oda adınızı belirleyin
+        width: 700,
+        height: 700,
+        parentNode: document.querySelector('#meet'),
+      };
+      const api = new JitsiMeetExternalAPI(domain, options);
+    </script>
+  </body>
+</html>
