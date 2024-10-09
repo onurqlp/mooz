@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Basit Online Konferans /title>
+    <title>Basit Online Konferans</title>
     <script src="https://meet.jit.si/external_api.js"></script>
   </head>
   <body>
-    <h1>Video Chat </h1>
+    <h1>Video Chat</h1>
     <div id="meet"></div>
 
     <script>
       const domain = "meet.jit.si";
       const options = {
-        roomName: "TDERSLİK 1, // Toplantı odası adı (isteğinize göre değiştirin)
+        roomName: "TDERSLIK1", // Toplantı odası adı (isteğinize göre değiştirin)
         width: 700,
         height: 700,
         parentNode: document.querySelector('#meet'),
         userInfo: {
-          displayName: prompt("Adınızı giriniz ") // Katılımcıdan sadece adını ister
+          displayName: prompt("Adınızı giriniz") // Katılımcıdan sadece adını ister
         }
       };
       const api = new JitsiMeetExternalAPI(domain, options);
