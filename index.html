@@ -47,12 +47,28 @@
     <div id="meet"></div>
 
     <script>
+      // Tam ekran modunu etkinleştir
+      function enableFullScreen() {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) { // Firefox için
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) { // Chrome, Safari ve Opera için
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { // IE/Edge için
+          elem.msRequestFullscreen();
+        }
+      }
+
       document.getElementById('startConference').addEventListener('click', function() {
+        enableFullScreen(); // Tam ekran moduna geçiş
+
         const domain = "meet.jit.si";
         const options = {
           roomName: "AYDA-DERSLIK", // Oda adını isteğinize göre değiştirebilirsiniz
-          width: 700,
-          height: 700,
+          width: "100%",
+          height: "100%",
           parentNode: document.querySelector('#meet'),
           configOverwrite: {
             prejoinPageEnabled: false, // Ön katılım sayfasını devre dışı bırakır
