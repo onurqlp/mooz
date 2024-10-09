@@ -11,12 +11,17 @@
     <script>
       const domain = "meet.jit.si";
       const options = {
-        roomName: "TDERSLIK1", // Toplantı odası adı (isteğinize göre değiştirin)
+        roomName: "TDERSLIK1", // Oda adını değiştirebilirsiniz
         width: 700,
         height: 700,
         parentNode: document.querySelector('#meet'),
+        configOverwrite: {
+          prejoinPageEnabled: false, // Katılım öncesi sayfayı devre dışı bırakır
+          startWithAudioMuted: true, // Mikrofonsuz başlatır
+          startWithVideoMuted: true, // Videoyu kapalı başlatır
+        },
         userInfo: {
-          displayName: prompt("Adınızı giriniz") // Katılımcıdan sadece adını ister
+          displayName: prompt("Adınızı giriniz") // Adı girilmeden katılım sağlanır
         }
       };
       const api = new JitsiMeetExternalAPI(domain, options);
