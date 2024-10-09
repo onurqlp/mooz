@@ -1,30 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
   <head>
-    <title>Basit Online Konferans</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AYDA ile online video konferans, dil kursları ve daha fazlasına hemen katılın. Üyelik gerekmez, adınızı girerek derse katılın.">
+    <meta name="keywords" content="AYDA, dil kursu, video konferans, Jitsi, online eğitim, Almanca kursu">
+    <meta name="author" content="AYDA Ankara Yabancı Dil Akademisi">
+    <title>AYDA Online Konferans</title>
     <script src="https://meet.jit.si/external_api.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+      }
+      h1 {
+        color: #003366;
+      }
+      #meet {
+        margin-top: 20px;
+      }
+      .btn {
+        background-color: #003366;
+        color: #fff;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background-color: #005999;
+      }
+    </style>
   </head>
   <body>
-    <h1>Video Chat</h1>
+    <h1>AYDA Video Konferans</h1>
+    <div class="btn" id="startConference">Derse Katıl</div>
     <div id="meet"></div>
 
     <script>
-      const domain = "meet.jit.si";
-      const options = {
-        roomName: "TDERSLIK1", // Oda adını değiştirebilirsiniz
-        width: 700,
-        height: 700,
-        parentNode: document.querySelector('#meet'),
-        configOverwrite: {
-          prejoinPageEnabled: false, // Katılım öncesi sayfayı devre dışı bırakır
-          startWithAudioMuted: true, // Mikrofonsuz başlatır
-          startWithVideoMuted: true, // Videoyu kapalı başlatır
-        },
-        userInfo: {
-          displayName: prompt("Adınızı giriniz") // Adı girilmeden katılım sağlanır
-        }
-      };
-      const api = new JitsiMeetExternalAPI(domain, options);
+      document.getElementById('startConference').addEventListener('click', function() {
+        const domain = "meet.jit.si";
+        const options = {
+          roomName: "AYDA-DERSLIK", // Oda adını isteğinize göre değiştirebilirsiniz
+          width: 700,
+          height: 700,
+          parentNode: document.querySelector('#meet'),
+          configOverwrite: {
+            prejoinPageEnabled: false, // Ön katılım sayfasını devre dışı bırakır
+            startWithAudioMuted: true, // Mikrofonsuz başlar
+            startWithVideoMuted: true // Video kapalı başlar
+          },
+          userInfo: {
+            displayName: prompt("Adınızı giriniz") // Kullanıcı adını sorar
+          }
+        };
+        const api = new JitsiMeetExternalAPI(domain, options);
+      });
     </script>
   </body>
 </html>
