@@ -19,9 +19,6 @@
         h1 {
             color: #61dafb;
         }
-        #join {
-            margin-top: 20px;
-        }
         iframe {
             margin-top: 20px;
             width: 80%;
@@ -32,34 +29,30 @@
 </head>
 <body>
     <h1>DC On - Sesli Sohbet</h1>
-    <input type="text" id="roomName" placeholder="Oda Adı">
-    <button id="createRoom">Oda Oluştur ve Katıl</button>
     <iframe id="dailyFrame" allow="camera; microphone" style="display: none;"></iframe>
 
     <script>
-        document.getElementById('createRoom').addEventListener('click', async () => {
-            const roomName = document.getElementById('roomName').value;
-            if (roomName.trim() === "") {
-                alert("Lütfen oda adı giriniz");
-                return;
+        // Sayfa yüklendiğinde otomatik olarak oda oluştur ve katıl
+        window.onload = async () => {
+            try {
+                const roomUrl = await createRoom();
+                const iframe = document.getElementById('dailyFrame');
+                iframe.src = roomUrl;
+                iframe.style.display = 'block';
+            } catch (error) {
+                console.error('Oda oluşturulurken hata oluştu:', error);
+                alert('Oda oluşturulurken bir hata oluştu, lütfen tekrar deneyin.');
             }
-
-            // Yeni bir oda oluştur ve URL'yi al
-            const roomUrl = await createRoom();
-            const iframe = document.getElementById('dailyFrame');
-            iframe.src = roomUrl;
-            iframe.style.display = 'block';
-        });
+        };
 
         async function createRoom() {
             const response = await fetch('https://api.daily.co/v1/rooms', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer 9d62f0f0f8a91a1b031b1eb60dc1b30e317aedb23b4e552ba19a2a9c58d4b1ce', // Buraya API anahtarınızı ekledim
+                    'Authorization': 'Bearer 9d62f0f0f8a91a1b031b1eb60dc1b30e317aedb23b4e552ba19a2a9c58d4b1ce', // API anahtarınızı kullanarak doğrulama
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    name: document.getElementById('roomName').value,
                     properties: {
                         enable_screenshare: false,
                         enable_chat: false,
@@ -67,6 +60,11 @@
                     }
                 })
             });
+
+            if (!response.ok) {
+                throw new Error('Oda oluşturma isteği başarısız oldu');
+            }
+
             const room = await response.json();
             return room.url;
         }
