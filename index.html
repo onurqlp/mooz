@@ -18,11 +18,13 @@
         }
         h1 {
             color: #61dafb;
+            text-align: center;
         }
         iframe {
             margin-top: 20px;
-            width: 80%;
-            height: 600px;
+            width: 100%;
+            max-width: 600px;
+            height: 60vh;
             border: 2px solid #61dafb;
         }
     </style>
@@ -35,7 +37,7 @@
         // Sayfa yüklendiğinde belirli bir odaya otomatik olarak katıl
         window.onload = async () => {
             try {
-                const roomUrl = 'https://dcon.daily.co/33w0JFd6IQMvemX8NMyn'; // Sabit bir oda URL'si
+                const roomUrl = 'https://dcon.daily.co/vsREm76m0LFSlwDSL4lu'; // Sabit bir oda URL'si
                 const iframe = document.getElementById('dailyFrame');
                 iframe.src = roomUrl;
                 iframe.style.display = 'block';
