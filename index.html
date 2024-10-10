@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="DC On - Kullanıcı dostu, lobi ve oda yapılı sesli sohbet uygulaması.">
-    <meta name="keywords" content="DC On, lobi, odalar, sesli sohbet, online sohbet, WebRTC, WebSocket">
-    <meta name="author" content="DC On Ekibi">
-    <title>DC On - Lobi ve Odalar</title>
+    <title>DC On - Sesli Sohbet Odası</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
@@ -46,6 +43,19 @@
         #leaveRoom:hover {
             background-color: #ff3333;
         }
+        #userList {
+            margin-top: 20px;
+            background-color: #3a3f47;
+            padding: 15px;
+            border-radius: 5px;
+            width: 300px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #userList h3 {
+            color: #61dafb;
+            margin: 0 0 10px 0;
+        }
         .controls {
             margin-top: 15px;
         }
@@ -63,19 +73,6 @@
         .controls button:hover {
             background-color: #4ea7c7;
         }
-        #userList {
-            margin-top: 20px;
-            background-color: #3a3f47;
-            padding: 15px;
-            border-radius: 5px;
-            width: 300px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        #userList h3 {
-            color: #61dafb;
-            margin: 0 0 10px 0;
-        }
         .user {
             background-color: #61dafb;
             color: #282c34;
@@ -90,42 +87,52 @@
     </style>
 </head>
 <body>
-    <h1>DC On - Lobi</h1>
+    <h1>DC On - Sesli Sohbet Odası</h1>
     <div id="login">
         <input type="text" id="username" placeholder="Kullanıcı adınızı giriniz">
-        <button id="enterLobby" class="btn">Lobiye Gir</button>
+        <button id="enterLobby">Lobiye Gir</button>
     </div>
 
     <!-- Lobi -->
     <div id="lobby">
         <h2>Mevcut Odalar</h2>
         <div id="rooms">
-            <!-- Odalar buraya eklenecek -->
-        </div>
-        <div id="userList">
-            <h3>Çevrim içi Kullanıcılar</h3>
-            <!-- Kullanıcılar buraya eklenecek -->
+            <button class="room" data-room-name="Oda1">Oda 1</button>
+            <button class="room" data-room-name="Oda2">Oda 2</button>
+            <button class="room" data-room-name="Oda3">Oda 3</button>
         </div>
     </div>
 
     <!-- Oda -->
     <div id="room">
         <h2 id="roomTitle">Oda</h2>
-        <button id="leaveRoom">Odadan Çık</button>
+        <div id="userList">
+            <h3>Odada Bulunan Kullanıcılar</h3>
+            <!-- Odadaki kullanıcılar buraya eklenecek -->
+        </div>
         <audio id="remoteAudio" autoplay></audio>
         <div class="controls" id="controls">
-          <button id="muteAudio"><i class="fas fa-microphone"></i></button>
-          <button id="toggleSpeaker"><i class="fas fa-volume-up"></i></button>
-          <button id="hangUp"><i class="fas fa-phone-slash"></i></button>
+            <button id="muteAudio"><i class="fas fa-microphone"></i></button>
+            <button id="toggleSpeaker"><i class="fas fa-volume-up"></i></button>
+            <button id="hangUp"><i class="fas fa-phone-slash"></i></button>
         </div>
+        <button id="leaveRoom">Odadan Çık</button>
     </div>
 
     <script>
-        let localConnection, remoteConnection, localStream;
-        let username = "";
+        let localStream;
+        let peerConnections = {};
+        let socket;
+        const servers = {
+            iceServers: [
+                {
+                    urls: "stun:stun.l.google.com:19302"
+                }
+            ]
+        };
         let users = [];
+        let username = "";
 
-        // Kullanıcı lobiye girmeden önce kullanıcı adını girmelidir.
         document.getElementById('enterLobby').addEventListener('click', () => {
             username = document.getElementById('username').value;
             if (username.trim() === "") {
@@ -134,100 +141,143 @@
             }
             document.getElementById('login').style.display = 'none';
             document.getElementById('lobby').style.display = 'block';
-            users.push(username);
-            loadRooms();
-            loadUsers();
         });
 
-        // Mevcut odaları yükleme (ornek verilerle)
-        function loadRooms() {
-            const roomsContainer = document.getElementById("rooms");
-            roomsContainer.innerHTML = "";
-            ["Oda 1", "Oda 2", "Oda 3"].forEach((roomName, index) => {
-                const roomDiv = document.createElement("div");
-                roomDiv.className = "room";
-                roomDiv.textContent = roomName;
-                roomDiv.dataset.roomId = index;
-                roomDiv.onclick = () => joinRoom(roomName);
-                roomsContainer.appendChild(roomDiv);
+        document.querySelectorAll('.room').forEach(button => {
+            button.addEventListener('click', () => {
+                const roomName = button.dataset.roomName;
+                joinRoom(roomName);
             });
-        }
+        });
 
-        // Mevcut kullanıcıları yükleme (dinamik olarak)
-        function loadUsers() {
-            const userListContainer = document.getElementById("userList");
-            userListContainer.innerHTML = "";
-            users.forEach((user) => {
-                const userDiv = document.createElement("div");
-                userDiv.className = "user";
-                userDiv.textContent = user;
-                userDiv.onclick = () => alert(`${user} kullanıcısını aramak için tıkladınız.`);
-                userListContainer.appendChild(userDiv);
-            });
-        }
-
-        // Odaya katılma
-        function joinRoom(roomName) {
+        async function joinRoom(roomName) {
             document.getElementById('lobby').style.display = 'none';
             document.getElementById('room').style.display = 'block';
             document.getElementById('roomTitle').textContent = roomName;
 
-            startCall();
+            socket = new WebSocket('wss://YOUR_SIGNALING_SERVER_URL'); // Signaling sunucusu adresi
+
+            socket.onopen = () => {
+                socket.send(JSON.stringify({ type: 'join', room: roomName, username }));
+            };
+
+            socket.onmessage = async (message) => {
+                const data = JSON.parse(message.data);
+
+                switch (data.type) {
+                    case 'offer':
+                        await handleOffer(data.offer, data.sender);
+                        break;
+                    case 'answer':
+                        await handleAnswer(data.answer, data.sender);
+                        break;
+                    case 'candidate':
+                        await handleCandidate(data.candidate, data.sender);
+                        break;
+                    case 'new-user':
+                        await handleNewUser(data.sender);
+                        break;
+                    case 'user-list':
+                        updateUserList(data.users);
+                        break;
+                }
+            };
+
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         }
 
-        // Odadan çıkma
-        document.getElementById('leaveRoom').addEventListener('click', () => {
-            document.getElementById('room').style.display = 'none';
-            document.getElementById('lobby').style.display = 'block';
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-            }
-            if (localConnection) {
-                localConnection.close();
-            }
-            if (remoteConnection) {
-                remoteConnection.close();
-            }
-        });
+        async function handleNewUser(sender) {
+            const peerConnection = new RTCPeerConnection(servers);
+            peerConnections[sender] = peerConnection;
 
-        // WebRTC bağlantısını başlatma
-        async function startCall() {
-            // Mikrofon erişimi alınıyor
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            peerConnection.addTrack(localStream.getTracks()[0], localStream);
 
-            // RTC bağlantısı oluşturuluyor
-            localConnection = new RTCPeerConnection();
-            remoteConnection = new RTCPeerConnection();
-
-            // Stream local bağlantıya ekleniyor
-            localConnection.addTrack(localStream.getTracks()[0], localStream);
-
-            // ICE candidate'leri paylaşma
-            localConnection.onicecandidate = ({ candidate }) => {
+            peerConnection.onicecandidate = ({ candidate }) => {
                 if (candidate) {
-                    remoteConnection.addIceCandidate(candidate);
-                }
-            };
-            remoteConnection.onicecandidate = ({ candidate }) => {
-                if (candidate) {
-                    localConnection.addIceCandidate(candidate);
+                    socket.send(JSON.stringify({
+                        type: 'candidate',
+                        candidate,
+                        to: sender
+                    }));
                 }
             };
 
-            // Remote stream'i alma
-            remoteConnection.ontrack = (event) => {
+            peerConnection.ontrack = (event) => {
                 document.getElementById('remoteAudio').srcObject = event.streams[0];
             };
 
-            // Teklif oluşturma ve bağlantıyı başlatma
-            const offer = await localConnection.createOffer();
-            await localConnection.setLocalDescription(offer);
-            await remoteConnection.setRemoteDescription(offer);
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
 
-            const answer = await remoteConnection.createAnswer();
-            await remoteConnection.setLocalDescription(answer);
-            await localConnection.setRemoteDescription(answer);
+            socket.send(JSON.stringify({
+                type: 'offer',
+                offer,
+                to: sender
+            }));
         }
+
+        async function handleOffer(offer, sender) {
+            const peerConnection = new RTCPeerConnection(servers);
+            peerConnections[sender] = peerConnection;
+
+            peerConnection.addTrack(localStream.getTracks()[0], localStream);
+
+            peerConnection.onicecandidate = ({ candidate }) => {
+                if (candidate) {
+                    socket.send(JSON.stringify({
+                        type: 'candidate',
+                        candidate,
+                        to: sender
+                    }));
+                }
+            };
+
+            peerConnection.ontrack = (event) => {
+                document.getElementById('remoteAudio').srcObject = event.streams[0];
+            };
+
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            socket.send(JSON.stringify({
+                type: 'answer',
+                answer,
+                to: sender
+            }));
+        }
+
+        async function handleAnswer(answer, sender) {
+            const peerConnection = peerConnections[sender];
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        }
+
+        async function handleCandidate(candidate, sender) {
+            const peerConnection = peerConnections[sender];
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+
+        function updateUserList(users) {
+            const userListContainer = document.getElementById("userList");
+            userListContainer.innerHTML = "<h3>Odada Bulunan Kullanıcılar</h3>";
+            users.forEach(user => {
+                const userDiv = document.createElement("div");
+                userDiv.className = "user";
+                userDiv.textContent = user;
+                userListContainer.appendChild(userDiv);
+            });
+        }
+
+        document.getElementById('leaveRoom').addEventListener('click', () => {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            Object.values(peerConnections).forEach(pc => pc.close());
+            peerConnections = {};
+            document.getElementById('room').style.display = 'none';
+            document.getElementById('lobby').style.display = 'block';
+            socket.close();
+        });
 
         // Mikrofonu kapatma/açma
         document.getElementById('muteAudio').addEventListener('click', function() {
@@ -250,14 +300,11 @@
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
             }
-            if (localConnection) {
-                localConnection.close();
-            }
-            if (remoteConnection) {
-                remoteConnection.close();
-            }
+            Object.values(peerConnections).forEach(pc => pc.close());
+            peerConnections = {};
             document.getElementById('room').style.display = 'none';
             document.getElementById('lobby').style.display = 'block';
+            socket.close();
         });
     </script>
 </body>
