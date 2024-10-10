@@ -63,16 +63,48 @@
         .controls button:hover {
             background-color: #4ea7c7;
         }
+        #userList {
+            margin-top: 20px;
+            background-color: #3a3f47;
+            padding: 15px;
+            border-radius: 5px;
+            width: 300px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #userList h3 {
+            color: #61dafb;
+            margin: 0 0 10px 0;
+        }
+        .user {
+            background-color: #61dafb;
+            color: #282c34;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .user:hover {
+            background-color: #4ea7c7;
+        }
     </style>
 </head>
 <body>
     <h1>DC On - Lobi</h1>
+    <div id="login">
+        <input type="text" id="username" placeholder="Kullanıcı adınızı giriniz">
+        <button id="enterLobby" class="btn">Lobiye Gir</button>
+    </div>
 
     <!-- Lobi -->
     <div id="lobby">
         <h2>Mevcut Odalar</h2>
         <div id="rooms">
             <!-- Odalar buraya eklenecek -->
+        </div>
+        <div id="userList">
+            <h3>Çevrim içi Kullanıcılar</h3>
+            <!-- Kullanıcılar buraya eklenecek -->
         </div>
     </div>
 
@@ -82,23 +114,33 @@
         <button id="leaveRoom">Odadan Çık</button>
         <audio id="remoteAudio" autoplay></audio>
         <div class="controls" id="controls">
-          <button id="muteAudio"><i class="fas fa-microphone-slash"></i></button>
+          <button id="muteAudio"><i class="fas fa-microphone"></i></button>
+          <button id="toggleSpeaker"><i class="fas fa-volume-up"></i></button>
           <button id="hangUp"><i class="fas fa-phone-slash"></i></button>
         </div>
     </div>
 
     <script>
         let localConnection, remoteConnection, localStream;
+        let username = "";
 
-        // Kullanıcı lobiye girdiğinde mevcut odalar görüntülenir.
-        document.addEventListener("DOMContentLoaded", () => {
+        // Kullanıcı lobiye girmeden önce kullanıcı adını girmelidir.
+        document.getElementById('enterLobby').addEventListener('click', () => {
+            username = document.getElementById('username').value;
+            if (username.trim() === "") {
+                alert("Lütfen bir kullanıcı adı giriniz.");
+                return;
+            }
+            document.getElementById('login').style.display = 'none';
             document.getElementById('lobby').style.display = 'block';
             loadRooms();
+            loadUsers();
         });
 
         // Mevcut odaları yükleme (ornek verilerle)
         function loadRooms() {
             const roomsContainer = document.getElementById("rooms");
+            roomsContainer.innerHTML = "";
             ["Oda 1", "Oda 2", "Oda 3"].forEach((roomName, index) => {
                 const roomDiv = document.createElement("div");
                 roomDiv.className = "room";
@@ -106,6 +148,19 @@
                 roomDiv.dataset.roomId = index;
                 roomDiv.onclick = () => joinRoom(roomName);
                 roomsContainer.appendChild(roomDiv);
+            });
+        }
+
+        // Mevcut kullanıcıları yükleme (ornek verilerle)
+        function loadUsers() {
+            const userListContainer = document.getElementById("userList");
+            userListContainer.innerHTML = "";
+            ["Ali", "Veli", "Ayşe", "Fatma"].forEach((user) => {
+                const userDiv = document.createElement("div");
+                userDiv.className = "user";
+                userDiv.textContent = user;
+                userDiv.onclick = () => alert(`${user} kullanıcısını aramak için tıkladınız.`);
+                userListContainer.appendChild(userDiv);
             });
         }
 
@@ -175,8 +230,15 @@
         // Mikrofonu kapatma/açma
         document.getElementById('muteAudio').addEventListener('click', function() {
             if (localStream) {
-                localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
+                const isEnabled = localStream.getAudioTracks()[0].enabled;
+                localStream.getAudioTracks()[0].enabled = !isEnabled;
+                this.innerHTML = isEnabled ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
             }
+        });
+
+        // Hoparlör açma/kapatma (dummy özellik)
+        document.getElementById('toggleSpeaker').addEventListener('click', function() {
+            alert("Hoparlör kontrolü bu sürümde simüle edilmiştir.");
         });
 
         // Aramadan çıkma
