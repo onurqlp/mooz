@@ -123,6 +123,7 @@
     <script>
         let localConnection, remoteConnection, localStream;
         let username = "";
+        let users = [];
 
         // Kullanıcı lobiye girmeden önce kullanıcı adını girmelidir.
         document.getElementById('enterLobby').addEventListener('click', () => {
@@ -133,6 +134,7 @@
             }
             document.getElementById('login').style.display = 'none';
             document.getElementById('lobby').style.display = 'block';
+            users.push(username);
             loadRooms();
             loadUsers();
         });
@@ -151,11 +153,11 @@
             });
         }
 
-        // Mevcut kullanıcıları yükleme (ornek verilerle)
+        // Mevcut kullanıcıları yükleme (dinamik olarak)
         function loadUsers() {
             const userListContainer = document.getElementById("userList");
             userListContainer.innerHTML = "";
-            ["Ali", "Veli", "Ayşe", "Fatma"].forEach((user) => {
+            users.forEach((user) => {
                 const userDiv = document.createElement("div");
                 userDiv.className = "user";
                 userDiv.textContent = user;
