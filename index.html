@@ -1,89 +1,198 @@
 <!DOCTYPE html>
-<html>
 <html lang="tr">
 <head>
-    <title>Basit Online Konferans</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AYDA ile online video konferans, dil kursları ve daha fazlasına hemen katılın. Üyelik gerekmez, adınızı girerek derse katılın.">
-    <meta name="keywords" content="AYDA, dil kursu, video konferans, Jitsi, online eğitim, Almanca kursu">
-    <meta name="author" content="AYDA Ankara Yabancı Dil Akademisi">
-    <title>AYDA Online Konferans</title>
-<script src="https://meet.jit.si/external_api.js"></script>
+    <meta name="description" content="DC On - Kullanıcı dostu, lobi ve oda yapılı sesli sohbet uygulaması.">
+    <meta name="keywords" content="DC On, lobi, odalar, sesli sohbet, online sohbet, WebRTC, WebSocket">
+    <meta name="author" content="DC On Ekibi">
+    <title>DC On - Lobi ve Odalar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f9;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        text-align: center;
-      }
-      h1 {
-        color: #003366;
-      }
-      #meet {
-        margin-top: 20px;
-      }
-      .btn {
-        background-color: #003366;
-        color: #fff;
-        padding: 10px 20px;
-        text-decoration: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-      .btn:hover {
-        background-color: #005999;
-      }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #282c34;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #61dafb;
+            margin-bottom: 20px;
+        }
+        #lobby, #room {
+            display: none;
+        }
+        .room {
+            background-color: #61dafb;
+            color: #282c34;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .room:hover {
+            background-color: #4ea7c7;
+        }
+        #leaveRoom {
+            background-color: #ff5c5c;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #leaveRoom:hover {
+            background-color: #ff3333;
+        }
+        .controls {
+            margin-top: 15px;
+        }
+        .controls button {
+            margin: 5px;
+            padding: 10px;
+            background-color: #61dafb;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            color: #282c34;
+            transition: background-color 0.3s;
+        }
+        .controls button:hover {
+            background-color: #4ea7c7;
+        }
     </style>
 </head>
 <body>
-    <h1>Video Chat</h1>
-    <h1>AYDA Video Konferans</h1>
-    <div class="btn" id="startConference">Derse Katıl</div>
-<div id="meet"></div>
+    <h1>DC On - Lobi</h1>
 
-<script>
-      const domain = "meet.jit.si";
-      const options = {
-        roomName: "TDERSLIK1", // Oda adını değiştirebilirsiniz
-        width: 700,
-        height: 700,
-        parentNode: document.querySelector('#meet'),
-        configOverwrite: {
-          prejoinPageEnabled: false, // Katılım öncesi sayfayı devre dışı bırakır
-          startWithAudioMuted: true, // Mikrofonsuz başlatır
-          startWithVideoMuted: true, // Videoyu kapalı başlatır
-        },
-        userInfo: {
-          displayName: prompt("Adınızı giriniz") // Adı girilmeden katılım sağlanır
+    <!-- Lobi -->
+    <div id="lobby">
+        <h2>Mevcut Odalar</h2>
+        <div id="rooms">
+            <!-- Odalar buraya eklenecek -->
+        </div>
+    </div>
+
+    <!-- Oda -->
+    <div id="room">
+        <h2 id="roomTitle">Oda</h2>
+        <button id="leaveRoom">Odadan Çık</button>
+        <audio id="remoteAudio" autoplay></audio>
+        <div class="controls" id="controls">
+          <button id="muteAudio"><i class="fas fa-microphone-slash"></i></button>
+          <button id="hangUp"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+
+    <script>
+        let localConnection, remoteConnection, localStream;
+
+        // Kullanıcı lobiye girdiğinde mevcut odalar görüntülenir.
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('lobby').style.display = 'block';
+            loadRooms();
+        });
+
+        // Mevcut odaları yükleme (ornek verilerle)
+        function loadRooms() {
+            const roomsContainer = document.getElementById("rooms");
+            ["Oda 1", "Oda 2", "Oda 3"].forEach((roomName, index) => {
+                const roomDiv = document.createElement("div");
+                roomDiv.className = "room";
+                roomDiv.textContent = roomName;
+                roomDiv.dataset.roomId = index;
+                roomDiv.onclick = () => joinRoom(roomName);
+                roomsContainer.appendChild(roomDiv);
+            });
         }
-      };
-      const api = new JitsiMeetExternalAPI(domain, options);
-      document.getElementById('startConference').addEventListener('click', function() {
-        const domain = "meet.jit.si";
-        const options = {
-          roomName: "AYDA-DERSLIK", // Oda adını isteğinize göre değiştirebilirsiniz
-          width: 700,
-          height: 700,
-          parentNode: document.querySelector('#meet'),
-          configOverwrite: {
-            prejoinPageEnabled: false, // Ön katılım sayfasını devre dışı bırakır
-            startWithAudioMuted: true, // Mikrofonsuz başlar
-            startWithVideoMuted: true // Video kapalı başlar
-          },
-          userInfo: {
-            displayName: prompt("Adınızı giriniz") // Kullanıcı adını sorar
-          }
-        };
-        const api = new JitsiMeetExternalAPI(domain, options);
-      });
-</script>
+
+        // Odaya katılma
+        function joinRoom(roomName) {
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('room').style.display = 'block';
+            document.getElementById('roomTitle').textContent = roomName;
+
+            startCall();
+        }
+
+        // Odadan çıkma
+        document.getElementById('leaveRoom').addEventListener('click', () => {
+            document.getElementById('room').style.display = 'none';
+            document.getElementById('lobby').style.display = 'block';
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (localConnection) {
+                localConnection.close();
+            }
+            if (remoteConnection) {
+                remoteConnection.close();
+            }
+        });
+
+        // WebRTC bağlantısını başlatma
+        async function startCall() {
+            // Mikrofon erişimi alınıyor
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // RTC bağlantısı oluşturuluyor
+            localConnection = new RTCPeerConnection();
+            remoteConnection = new RTCPeerConnection();
+
+            // Stream local bağlantıya ekleniyor
+            localConnection.addTrack(localStream.getTracks()[0], localStream);
+
+            // ICE candidate'leri paylaşma
+            localConnection.onicecandidate = ({ candidate }) => {
+                if (candidate) {
+                    remoteConnection.addIceCandidate(candidate);
+                }
+            };
+            remoteConnection.onicecandidate = ({ candidate }) => {
+                if (candidate) {
+                    localConnection.addIceCandidate(candidate);
+                }
+            };
+
+            // Remote stream'i alma
+            remoteConnection.ontrack = (event) => {
+                document.getElementById('remoteAudio').srcObject = event.streams[0];
+            };
+
+            // Teklif oluşturma ve bağlantıyı başlatma
+            const offer = await localConnection.createOffer();
+            await localConnection.setLocalDescription(offer);
+            await remoteConnection.setRemoteDescription(offer);
+
+            const answer = await remoteConnection.createAnswer();
+            await remoteConnection.setLocalDescription(answer);
+            await localConnection.setRemoteDescription(answer);
+        }
+
+        // Mikrofonu kapatma/açma
+        document.getElementById('muteAudio').addEventListener('click', function() {
+            if (localStream) {
+                localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
+            }
+        });
+
+        // Aramadan çıkma
+        document.getElementById('hangUp').addEventListener('click', function() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (localConnection) {
+                localConnection.close();
+            }
+            if (remoteConnection) {
+                remoteConnection.close();
+            }
+            document.getElementById('room').style.display = 'none';
+            document.getElementById('lobby').style.display = 'block';
+        });
+    </script>
 </body>
 </html>
