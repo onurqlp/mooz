@@ -14,24 +14,94 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            height: 100vh;
+            margin: 0;
         }
         h1 {
             color: #61dafb;
             text-align: center;
         }
-        iframe {
-            margin-top: 20px;
+        .container {
+            display: flex;
+            flex-direction: row;
             width: 100%;
-            max-width: 600px;
-            height: 60vh;
-            border: 2px solid #61dafb;
+            height: 100%;
+        }
+        .video-container {
+            flex: 3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            background-color: #333;
+            max-width: 400px;
+            border-left: 2px solid #61dafb;
+        }
+        .chat-box {
+            flex: 1;
+            background-color: #444;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #61dafb;
+        }
+        .chat-input {
+            margin-top: 10px;
+            display: flex;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 3px;
+        }
+        .chat-input button {
+            background-color: #61dafb;
+            color: #282c34;
+            border: none;
+            padding: 10px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .chat-container {
+                max-width: 100%;
+                border-left: none;
+                border-top: 2px solid #61dafb;
+            }
         }
     </style>
 </head>
 <body>
     <h1>DC On - GARDAŞŞ</h1>
-    <iframe id="dailyFrame" allow="camera; microphone; display-capture" style="display: none;"></iframe>
+
+    <div class="container">
+        <div class="video-container">
+            <iframe id="dailyFrame" allow="camera; microphone; display-capture"></iframe>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-box" id="chatBox">
+                <!-- Chat mesajları buraya gelecek -->
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatMessage" placeholder="Mesajınızı yazın...">
+                <button id="sendMessageBtn">Gönder</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Daily.co SDK'sını dahil et -->
     <script src="https://unpkg.com/@daily-co/daily-js"></script>
@@ -43,12 +113,24 @@
                 const roomUrl = 'https://dcon.daily.co/vsREm76m0LFSlwDSL4lu'; // Sabit bir oda URL'si
                 const iframe = document.getElementById('dailyFrame');
                 iframe.src = roomUrl;
-                iframe.style.display = 'block';
             } catch (error) {
                 console.error('Odaya katılırken hata oluştu:', error);
                 alert('Odaya katılırken bir hata oluştu, lütfen tekrar deneyin.');
             }
         };
+
+        // Chat gönderme işlevi (basit frontend chat, backend olmadan çalışmaz)
+        document.getElementById('sendMessageBtn').addEventListener('click', () => {
+            const chatMessage = document.getElementById('chatMessage').value;
+            const chatBox = document.getElementById('chatBox');
+            if (chatMessage.trim() !== '') {
+                const messageElement = document.createElement('div');
+                messageElement.textContent = chatMessage;
+                chatBox.appendChild(messageElement);
+                chatBox.scrollTop = chatBox.scrollHeight; // Otomatik kaydırma
+                document.getElementById('chatMessage').value = ''; // Girdi temizle
+            }
+        });
     </script>
 </body>
 </html>
