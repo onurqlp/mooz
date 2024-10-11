@@ -32,6 +32,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
         .chat-container {
             flex: 1;
@@ -82,6 +83,16 @@
                 border-top: 2px solid #61dafb;
             }
         }
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #61dafb;
+            color: #282c34;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
@@ -90,6 +101,7 @@
     <div class="container">
         <div class="video-container">
             <iframe id="dailyFrame" allow="camera; microphone; display-capture"></iframe>
+            <button class="fullscreen-btn" id="fullscreenBtn">Tam Ekran</button>
         </div>
 
         <div class="chat-container">
@@ -119,7 +131,7 @@
             }
         };
 
-        // Chat gönderme işlevi (basit frontend chat, backend olmadan çalışmaz)
+        // Chat gönderme işlevi
         document.getElementById('sendMessageBtn').addEventListener('click', () => {
             const chatMessage = document.getElementById('chatMessage').value;
             const chatBox = document.getElementById('chatBox');
@@ -129,6 +141,20 @@
                 chatBox.appendChild(messageElement);
                 chatBox.scrollTop = chatBox.scrollHeight; // Otomatik kaydırma
                 document.getElementById('chatMessage').value = ''; // Girdi temizle
+            }
+        });
+
+        // Tam ekran işlevi
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            const iframe = document.getElementById('dailyFrame');
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.mozRequestFullScreen) { // Firefox
+                iframe.mozRequestFullScreen();
+            } else if (iframe.webkitRequestFullscreen) { // Chrome, Safari, Opera
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) { // IE/Edge
+                iframe.msRequestFullscreen();
             }
         });
     </script>
