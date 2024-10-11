@@ -27,11 +27,26 @@
             height: 60vh;
             border: 2px solid #61dafb;
         }
+        button {
+            background-color: #61dafb;
+            color: #282c34;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #21a1f1;
+        }
     </style>
 </head>
 <body>
     <h1>DC On - GARDAŞŞ</h1>
     <iframe id="dailyFrame" allow="camera; microphone" style="display: none;"></iframe>
+
+    <!-- Ekran paylaşımı başlatma butonu -->
+    <button id="shareScreenBtn">Ekran Paylaşımını Başlat</button>
 
     <script>
         // Sayfa yüklendiğinde belirli bir odaya otomatik olarak katıl
@@ -46,6 +61,42 @@
                 alert('Odaya katılırken bir hata oluştu, lütfen tekrar deneyin.');
             }
         };
+
+        // Ekran paylaşımı fonksiyonu
+        async function startScreenShare(call) {
+            try {
+                call.startScreenShare({
+                    displayMediaOptions: {
+                        audio: false,
+                        selfBrowserSurface: 'exclude',
+                        surfaceSwitching: 'include',
+                        video: {
+                            width: 1024,
+                            height: 768,
+                        },
+                    },
+                    screenVideoSendSettings: 'motion-and-detail-balanced',
+                });
+            } catch (error) {
+                console.error('Ekran paylaşımı başlatılırken hata:', error);
+                alert('Ekran paylaşımı başlatılamadı.');
+            }
+        }
+
+        // Odaya bağlan ve ekran paylaşımı başlat
+        document.getElementById('shareScreenBtn').addEventListener('click', async () => {
+            const callFrame = window.DailyIframe.createFrame({
+                iframeStyle: {
+                    display: 'none',  // Görünmesini istemiyoruz
+                },
+            });
+
+            const roomUrl = 'https://dcon.daily.co/vsREm76m0LFSlwDSL4lu';
+            await callFrame.join({ url: roomUrl });
+
+            // Ekran paylaşımını başlat
+            startScreenShare(callFrame);
+        });
     </script>
 </body>
 </html>
